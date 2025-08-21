@@ -1,0 +1,219 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 데이터베이스
+  postgres:
+    image: postgres:15-alpine
+    container_name: music_ai_postgres
+    environment:
+      POSTGRES_DB: musicdb
+      POSTGRES_USER: musicuser
+      POSTGRES_PASSWORD: musicpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - music_ai_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U musicuser -d musicdb"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis 캐시
+  redis:
+    image: redis:7-alpine
+    container_name: music_ai_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - music_ai_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # API Gateway
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile.gateway
+    container_name: music_ai_gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - SERVICE_NAME=gateway
+      - SERVICE_PORT=8000
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_DEBUG=false
+      - SERVICE_USER_SERVICE_URL=http://user-service:8001
+      - SERVICE_MIDI_SERVICE_URL=http://midi-service:8002
+      - SERVICE_RAG_SERVICE_URL=http://rag-service:8003
+      - DB_DATABASE_URL=postgresql://musicuser:musicpass@postgres:5432/musicdb
+      - REDIS_REDIS_URL=redis://redis:6379
+      - AUTH_SECRET_KEY=your-super-secret-key-change-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - music_ai_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # User Service
+  user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.user
+    container_name: music_ai_user_service
+    ports:
+      - "8001:8001"
+    environment:
+      - SERVICE_NAME=user-service
+      - SERVICE_PORT=8001
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_DEBUG=false
+      - DB_DATABASE_URL=postgresql://musicuser:musicpass@postgres:5432/musicdb
+      - REDIS_REDIS_URL=redis://redis:6379
+      - AUTH_SECRET_KEY=your-super-secret-key-change-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - music_ai_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # MIDI Service
+  midi-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.midi
+    container_name: music_ai_midi_service
+    ports:
+      - "8002:8002"
+    environment:
+      - SERVICE_NAME=midi-service
+      - SERVICE_PORT=8002
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_DEBUG=false
+      - DB_DATABASE_URL=postgresql://musicuser:musicpass@postgres:5432/musicdb
+      - REDIS_REDIS_URL=redis://redis:6379
+      - AUTH_SECRET_KEY=your-super-secret-key-change-in-production
+    volumes:
+      - midi_uploads:/app/uploads/midi
+      - midi_generated:/app/generated/midi
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - music_ai_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # RAG Service
+  rag-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.rag
+    container_name: music_ai_rag_service
+    ports:
+      - "8003:8003"
+    environment:
+      - SERVICE_NAME=rag-service
+      - SERVICE_PORT=8003
+      - SERVICE_HOST=0.0.0.0
+      - SERVICE_DEBUG=false
+      - DB_DATABASE_URL=postgresql://musicuser:musicpass@postgres:5432/musicdb
+      - REDIS_REDIS_URL=redis://redis:6379
+      - AUTH_SECRET_KEY=your-super-secret-key-change-in-production
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-your-openai-api-key-here}
+    volumes:
+      - chroma_data:/app/chroma_db
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - music_ai_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # 모니터링 - Prometheus (선택사항)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: music_ai_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - music_ai_network
+    profiles: ["monitoring"]
+
+  # 모니터링 - Grafana (선택사항)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: music_ai_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - music_ai_network
+    profiles: ["monitoring"]
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  midi_uploads:
+    driver: local
+  midi_generated:
+    driver: local
+  chroma_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  music_ai_network:
+    driver: bridge
