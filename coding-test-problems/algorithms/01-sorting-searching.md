@@ -7,6 +7,7 @@
 
 ```python
 def binary_search(nums, target):
+
     """
     예시:
     Input: nums = [-1, 0, 3, 5, 9, 12], target = 9
@@ -18,7 +19,26 @@ def binary_search(nums, target):
     시간복잡도: O(log n)
     공간복잡도: O(1)
     """
-    pass
+    # 왼쪽 포인터는 배열시작 오른쪽 포인터는 배열의 끝에서 시작
+    left, right = 0, len(nums) - 1
+
+    # 탐색 구간이 유효할떄 까지 반복 
+    while left <= right:
+        # 중앙 인덱스 계산 (정수 나눗셈)
+        mid = (left + right) // 2 
+        # 중앙값이 찾는 값과 같은 면 인덱스 반환 
+        if nums[mid] == target:
+            return mid
+        # 중앙값이 타겟보다 작은 경우 다켓은 오른쪽 구간에 있음 -> left를 mide +1 로 이동ㄷ 
+        if nums[mid] < target:
+            legt = mid + 1
+        # 
+        else: 
+            right = mid -1 
+    
+    retunr -1 
+
+    
 ```
 
 ## 문제 2: 첫 번째와 마지막 위치 찾기 (Medium)
@@ -41,7 +61,7 @@ def search_range(nums, target):
     
     시간복잡도: O(log n) (이진탐색 2번)
     """
-    pass
+
 ```
 
 ## 문제 3: 회전된 정렬 배열에서 탐색 (Medium)
@@ -65,7 +85,7 @@ def search_rotated_array(nums, target):
     힌트: 배열의 한쪽은 항상 정렬되어 있습니다
     시간복잡도: O(log n)
     """
-    pass
+    
 ```
 
 ## 문제 4: K번째로 큰 원소 (Medium)
