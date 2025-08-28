@@ -1,0 +1,147 @@
+# Docker Compose 파일 - 로컬 개발환경용 PostgreSQL, Kafka, Redis 설정
+# 
+# 이 파일에서 배울 수 있는 개념들:
+# 1. Docker Compose: 여러 컨테이너를 한번에 관리
+# 2. 서비스 간 의존성 관리 (depends_on)
+# 3. 환경변수 설정
+# 4. 포트 매핑
+# 5. 네트워크 구성
+
+version: '3.8'
+
+services:
+  # PostgreSQL 데이터베이스
+  postgres:
+    image: postgres:15-alpine
+    container_name: tutorial-postgres
+    environment:
+      POSTGRES_DB: fastapi_tutorial
+      POSTGRES_USER: tutorial_user
+      POSTGRES_PASSWORD: tutorial_password
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # 초기 데이터 설정 스크립트 (선택사항)
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tutorial_user -d fastapi_tutorial"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: >
+      postgres 
+      -c log_statement=all 
+      -c log_destination=stderr 
+      -c log_min_messages=info
+      -c max_connections=200
+      -c shared_buffers=256MB
+
+  # Redis 서비스
+  redis:
+    image: redis:7.0-alpine  # 가벼운 Alpine 버전 사용
+    container_name: tutorial-redis
+    ports:
+      - "6379:6379"  # 호스트 6379 포트를 컨테이너 6379 포트로 매핑
+    volumes:
+      # Redis 데이터를 호스트에 저장 (선택사항 - 데이터 지속성을 위해)
+      - redis_data:/data
+    command: redis-server --appendonly yes  # AOF 모드 활성화 (데이터 안전성)
+    restart: unless-stopped  # 컨테이너 자동 재시작
+    healthcheck:
+      # Redis가 정상 동작하는지 확인
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Zookeeper 서비스 (Kafka가 의존하는 서비스)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: tutorial-zookeeper
+    environment:
+      # Zookeeper 설정
+      ZOOKEEPER_CLIENT_PORT: 2181  # 클라이언트 포트
+      ZOOKEEPER_TICK_TIME: 2000    # 기본 시간 단위 (밀리초)
+    volumes:
+      - zk_data:/var/lib/zookeeper/data
+      - zk_log:/var/lib/zookeeper/log
+    restart: unless-stopped
+
+  # Kafka 서비스
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: tutorial-kafka
+    depends_on:
+      - zookeeper  # Zookeeper가 먼저 실행되어야 함
+    ports:
+      - "9092:9092"  # 외부에서 접근할 수 있는 포트
+    environment:
+      # Kafka 브로커 설정
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181  # Zookeeper 연결 정보
+      
+      # 리스너 설정 (중요!)
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      
+      # 기본 설정
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1  # 단일 브로커이므로 복제본 1개
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      
+      # 로그 설정
+      KAFKA_LOG_RETENTION_HOURS: 168  # 7일간 로그 보관
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824  # 1GB
+      
+      # 자동 토픽 생성 허용
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    restart: unless-stopped
+    healthcheck:
+      # Kafka 브로커가 정상 동작하는지 확인
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Kafka UI (선택사항 - Kafka 관리용 웹 인터페이스)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: tutorial-kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8080:8080"  # http://localhost:8080 에서 접근 가능
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    restart: unless-stopped
+
+  # Redis Insight (선택사항 - Redis 관리용 웹 인터페이스)
+  redis-insight:
+    image: redislabs/redisinsight:latest
+    container_name: tutorial-redis-insight
+    ports:
+      - "8001:8001"  # http://localhost:8001 에서 접근 가능
+    volumes:
+      - redisinsight_data:/db
+    restart: unless-stopped
+
+# 볼륨 정의 (데이터 지속성을 위해)
+volumes:
+  postgres_data:
+  redis_data:
+  zk_data:
+  zk_log:
+  kafka_data:
+  redisinsight_data:
+
+# 네트워크 정의 (선택사항)
+networks:
+  default:
+    name: tutorial-network

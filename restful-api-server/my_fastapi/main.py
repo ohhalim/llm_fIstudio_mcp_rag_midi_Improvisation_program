@@ -1,62 +1,40 @@
-# from fastapi import FastAPI
-# from routers import users, items
-
-# app = Fast  (title ="My API", version = '1.0.0')
-
-# app.include_router(users.router, perfix"/users", tags = ["users"])
-# app.include_router(items.router, perfix"/items", tags =["items"])
-
-
-# @app.get("/")
-# def read_root():
-#     return {"message": 'hello world'}
-
-
-## 오늘 저거 다치쟈 fastapi 최소구현 코드  -> 0 다 했다!!
-
 from fastapi import FastAPI
+from routers import users
 
-app = FastAPI()
+# FastAPI 앱 인스턴스 생성
+app = FastAPI(
+    title="My FastAPI App",
+    description="Django 경험자를 위한 FastAPI 학습용 API",
+    version="1.0.0"
+)
 
-@app,get("/")
+# 라우터 포함
+app.include_router(users.router, prefix="/users", tags=["users"])
+
+# 기본 루트 엔드포인트
+@app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return {
+        "message": "Hello FastAPI!",
+        "status": "running",
+        "version": "1.0.0",
+        "available_endpoints": {
+            "users": "/users",
+            "docs": "/docs",
+            "redoc": "/redoc"
+        }
+    }
 
-# Model
-class User(models.Model):
-    name = models.CharField(max_length=100)
-    email = modles.EmailField()
+# 간단한 헬스체크 엔드포인트
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
 
-from pydantic import BaseModel
-
-class User(BaseModel):
-    name:str
-    email: str
-
-@app.get("/users/{user_id}")
-def read_user(user_id: int, q: str = None):
-    return {"user_id": user_id, "q":q}
-
-
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
-
-class Uesr(Base):
-    --tablename-- = "users"
-    id = Clomn(Integer, primary_key=True, index=True)
-    name =Column(String, index=True)
-
-from fastapi import Depends
-
-def get_db():
-    db = SessinLocal()
-    try:
-        yield db
-    finally: 
-        db.close()
-
-@app.get("/users/")
-def read_users(db:Sesion = Depends(get_db)):
-    return db.query(User).all()
+# 쿼리 매개변수 예제
+@app.get("/items/")
+def read_items(skip: int = 0, limit: int = 10):
+    return {
+        "skip": skip,
+        "limit": limit,
+        "message": "이것은 쿼리 매개변수 예제입니다"
+    }
