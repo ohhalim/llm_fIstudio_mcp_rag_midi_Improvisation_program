@@ -10,27 +10,39 @@ services/user_service.py - PostgreSQL 연동 사용자 비즈니스 로직 서�
 6. 이벤트 기반 아키텍처 적용
 7. bcrypt를 이용한 안전한 비밀번호 처리
 """
-
+# 타입 힌틴을 위한 기본 타입들 임포트
 from typing import List, Optional, Dict, Any
+# 날짜 시간처리오 클래스
 from datetime import datetime, timedelta
+# 로깅 시스템 (디버기, 모니터닐에 필수)
 import logging
+# 비동기sqlalchemy 세션 postgresql 비동기 연결
 from sqlalchemy.ext.asyncio import AsyncSession
+# sqlalchemy 쿼리 빌더 함수들 
 from sqlalchemy import select, func, and_, or_, update, delete
+# 관계형 데이터 로딩
 from sqlalchemy.orm import selectinload
-
+# pydantic 모델드 api 입출력 스키마 
 from models import User, UserCreate, UserUpdate, UserStatus, EventType
+# sqlalchemy orm 모델들(실제 db 테이블 매핑)
 from db_models import User as DBUser, UserActivity as DBUserActivity
+# 데이터베이스 연결 함수들 
 from database import get_async_session, get_async_db_session
+# redis 캐싱서비스 
 from services.redis_service import redis_service
+# kafka 메시징
 from services.kafka_service import kafka_service, publish_user_event
+# 인증서비스 
 from services.auth_service import auth_service
 
 
 # 로깅 설정
+# 로깅 레벨 설정: info 이상 로그만 출력
 logging.basicConfig(level=logging.INFO)
+# 모듈별로거 생성: 
 logger = logging.getLogger(__name__)
 
-
+# 서비스 클래스 정의 : 비즈니스 로직 담당
 class UserService:
     """
     사용자 관련 비즈니스 로직을 처리하는 서비스 클래스
@@ -42,7 +54,7 @@ class UserService:
     - 캐시 및 이벤트 처리
     - PostgreSQL 데이터베이스 연동
     """
-    
+    # 생성자 의존성주입 패턴
     def __init__(self):
         """
         사용자 서비스 초기화
@@ -51,12 +63,16 @@ class UserService:
         Redis, Kafka, Auth 서비스를 주입받아 사용합니다.
         실제 PostgreSQL 데이터베이스와 연동합니다.
         """
+        # redis 서비스 주입 
         self.redis = redis_service
+        # kafka  서비스 주입 
         self.kafka = kafka_service
+        # auth 서비스 주입
         self.auth = auth_service
-        
+        # 초기화 완료 로그 
         logger.info("✅ 사용자 서비스 초기화 완료 (PostgreSQL 연동)")
     
+    # 비동기 메서드: 타입 힌팅을 입출력 명시
     async def create_user(self, user_data: UserCreate) -> Optional[User]:
         """
         새 사용자 생성
@@ -75,9 +91,11 @@ class UserService:
         5. 사용자 생성 이벤트 발행 (Kafka)
         6. 활동 로그 기록
         """
+        # 트랜잭션 시작/ 컨텍스트 매니져 
         async with get_async_session() as session:
             try:
                 # 1. 이메일 중복 확인
+                # 중복 체크: 헬퍼 메서드로 이메일 검색
                 existing_user = await self._find_user_by_email(session, user_data.email)
                 if existing_user:
                     logger.warning(f"⚠️ 이메일 중복: {user_data.email}")
