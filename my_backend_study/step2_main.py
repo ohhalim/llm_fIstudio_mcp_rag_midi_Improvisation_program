@@ -162,12 +162,10 @@ def get_stats(db: Session = Depends(get_db)):
     }
 
 # 이메일로 사용자 검색
-@app.get("/users/search/{email}", response_model =User)
-def search_user_by_email(email: str, db: Session = 
-Depends(get_db)):
-    user = db.query(UserDB).filter(UserDB.email == 
-    email).first()
-
+@app.get("/users/search/{email}", response_model=User)
+def search_user_by_email(email: str, db: Session = Depends(get_db)):
+    user = db.query(UserDB).filter(UserDB.email == email).first()
+    
     if not user:
         raise HTTPException(status_code=404,
         detail="해당 이메일의 사용자를 찾을 수 없습니다")
