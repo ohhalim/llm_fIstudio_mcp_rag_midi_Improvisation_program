@@ -1,0 +1,22 @@
+[project]
+name = "gemini-chat-api"
+version = "0.1.0"
+description = "Gemini AI Chat API with PostgreSQL"
+dependencies = [
+    "fastapi>=0.104.1",
+    "uvicorn[standard]>=0.24.0",
+    "sqlalchemy>=2.0.23",
+    "psycopg2-binary>=2.9.9",
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "google-generativeai>=0.3.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uvicorn]
+host = "0.0.0.0"
+port = 8000
+reload = true

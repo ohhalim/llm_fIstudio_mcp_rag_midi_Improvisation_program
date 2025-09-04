@@ -1,19 +1,11 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy import Column, Integer, Text, DateTime
 from sqlalchemy.sql import func
-from .database import Base
+from app.database import Base
 
-class User(Base):
-    __tablename__ = "users"
+class Chat(Base):
+    __tablename__ = "chats"
     
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), nullable=False)
-    email = Column(String(100), unique=True, index=True, nullable=False)
-    age = Column(Integer, nullable=True)
-    is_active = Column(Boolean, default=True)
-    
-    # 자동 생성/수정 시간
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
-    def __repr__(self):
-        return f"<User(id={self.id}, name={self.name}, email={self.email})>"
+    id = Column(Integer, primary_key=True)
+    question = Column(Text)  # 질문
+    answer = Column(Text)    # 답변
+    created_at = Column(DateTime, default=func.now())

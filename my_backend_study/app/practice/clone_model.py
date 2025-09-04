@@ -1,7 +1,9 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean
+# sql 함수들
 from dqlalchemy.sql import func
 
 class User(base):
+    # 테이블 이름
     __tablename__ = "users"
 
     id =Column(Integer, primary_key=True, index=True)
@@ -12,6 +14,8 @@ class User(base):
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at =Column(DateTime(timezone=True), onupdate=func.now())
-
+    
     def __repr__(self):
-        return f"<User(id={self.id}, name={self.name}, email={self.emails})"
+        return f"<User(id={self.id}, name={self.name}, email={self.emails})" 
+
+    
