@@ -1,1 +1,0 @@
-# Shared utilities and common components for microservices

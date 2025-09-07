@@ -1,1 +1,0 @@
-# MIDI processing and generation microservice
