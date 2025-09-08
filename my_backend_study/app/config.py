@@ -3,24 +3,11 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # 데이터베이스 설정
-    DATABASE_HOST: str = os.getenv("DATABASE_HOST", "localhost")
-    DATABASE_PORT: int = int(os.getenv("DATABASE_PORT", "5432"))
-    DATABASE_NAME: str = os.getenv("DATABASE_NAME", "gemini_chat_db")
-    DATABASE_USER: str = os.getenv("DATABASE_USER", "postgres")
-    DATABASE_PASSWORD: str = os.getenv("DATABASE_PASSWORD", "password")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./simple_app.db")
     
-    # Gemini API 설정
-    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "your-gemini-api-key")
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
-    
-    # 애플리케이션 설정
-    APP_NAME: str = "Gemini Chat API"
+    # 앱 설정
+    APP_NAME: str = "Simple FastAPI App"
     DEBUG: bool = os.getenv("DEBUG", "True").lower() == "true"
-    
-    @property
-    def database_url(self) -> str:
-        return f"postgresql://{self.DATABASE_USER}:{self.DATABASE_PASSWORD}@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
 
-# 전역 설정 객체 생성
+# 전역 설정 객체
 settings = Settings()
-

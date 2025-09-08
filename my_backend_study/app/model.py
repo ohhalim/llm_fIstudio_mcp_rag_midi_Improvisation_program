@@ -1,11 +1,12 @@
-from sqlalchemy import Column, Integer, Text, DateTime
+from sqlalchemy import Column, Integer, String, DateTime
 from sqlalchemy.sql import func
-from app.database import Base
+from .simple_database import Base
 
-class Chat(Base):
-    __tablename__ = "chats"
+class User(Base):
+    __tablename__ = "users"
     
-    id = Column(Integer, primary_key=True)
-    question = Column(Text)  # 질문
-    answer = Column(Text)    # 답변
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), nullable=False)
+    email = Column(String(100), unique=True, nullable=False)
+    age = Column(Integer)
     created_at = Column(DateTime, default=func.now())
