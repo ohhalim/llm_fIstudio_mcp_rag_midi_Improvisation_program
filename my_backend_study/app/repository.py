@@ -1,14 +1,42 @@
 from sqlalchemy.orm import Session
-from app.model import Chat
+from .simple_model import User
+from .simple_schemas import UserCreate, UserUpdate
 
-def save_chat(db: Session, question: str, answer: str):
-    """질문과 답변을 DB에 저장"""
-    chat = Chat(question=question, answer=answer)
-    db.add(chat)
+def get_user(db: Session, user_id: int):
+    """ID로 사용자 조회"""
+    return db.query(User).filter(User.id == user_id).first()
+
+def get_users(db: Session, skip: int = 0, limit: int = 10):
+    """사용자 목록 조회"""
+    return db.query(User).offset(skip).limit(limit).all()
+
+def get_user_by_email(db: Session, email: str):
+    """이메일로 사용자 조회"""
+    return db.query(User).filter(User.email == email).first()
+
+def create_user(db: Session, user: UserCreate):
+    """사용자 생성"""
+    db_user = User(**user.dict())
+    db.add(db_user)
     db.commit()
-    db.refresh(chat)
-    return chat
+    db.refresh(db_user)
+    return db_user
 
-def get_all_chats(db: Session):
-    """모든 채팅 가져오기 (최신순)"""
-    return db.query(Chat).order_by(Chat.created_at.desc()).all()
+def update_user(db: Session, user_id: int, user_update: UserUpdate):
+    """사용자 정보 업데이트"""
+    db_user = get_user(db, user_id)
+    if db_user:
+        for field, value in user_update.dict(exclude_unset=True).items():
+            setattr(db_user, field, value)
+        db.commit()
+        db.refresh(db_user)
+    return db_user
+
+def delete_user(db: Session, user_id: int):
+    """사용자 삭제"""
+    db_user = get_user(db, user_id)
+    if db_user:
+        db.delete(db_user)
+        db.commit()
+        return True
+    return False

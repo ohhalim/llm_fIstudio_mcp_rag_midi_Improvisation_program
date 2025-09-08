@@ -1,16 +1,25 @@
 from pydantic import BaseModel
 from datetime import datetime
 
-# 질문 받을 때
-class QuestionRequest(BaseModel):
-    question: str
+# User 생성 요청
+class UserCreate(BaseModel):
+    name: str
+    email: str
+    age: int = None
 
-# 답변 보낼 때  
-class ChatResponse(BaseModel):
+# User 응답
+class UserResponse(BaseModel):
     id: int
-    question: str
-    answer: str
+    name: str
+    email: str
+    age: int = None
     created_at: datetime
     
     class Config:
         from_attributes = True
+
+# User 업데이트 요청
+class UserUpdate(BaseModel):
+    name: str = None
+    email: str = None
+    age: int = None
