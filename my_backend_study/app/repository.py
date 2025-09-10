@@ -16,10 +16,10 @@ def get_user_by_email(db: Session, email: str):
 
 def create_user(db: Session, user: UserCreate):
     """사용자 생성"""
-    db_user = User(**user.dict())
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
+    db_user = User(**user.dict()) # pydantic -> sqlalchemy 변환
+    db.add(db_user) # 메모리에 추가
+    db.commit() # db에 저장
+    db.refresh(db_user) # 새로 생성된 필드 가져오기
     return db_user
 
 def update_user(db: Session, user_id: int, user_update: UserUpdate):

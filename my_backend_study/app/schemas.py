@@ -1,13 +1,13 @@
 from pydantic import BaseModel
 from datetime import datetime
 
-# User 생성 요청
+# User 생성 요청 / 요청 데이터 검증
 class UserCreate(BaseModel):
     name: str
     email: str
     age: int = None
 
-# User 응답
+# User 응답 / 응답 데이터 형식
 class UserResponse(BaseModel):
     id: int
     name: str
