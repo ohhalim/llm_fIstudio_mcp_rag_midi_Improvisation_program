@@ -12,7 +12,7 @@ engine = create_engine(
 # 세션 팩토리
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# 베이스 클래스
+# 베이스 클래스 (모든 모델의 부모)
 Base = declarative_base()
 
 # DB 세션 의존성 주입 함수
