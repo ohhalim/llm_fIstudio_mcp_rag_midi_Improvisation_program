@@ -18,7 +18,8 @@ def on_startup():
     create_tables()
 
 @app.get("/")
-def root():
+def root(): 
+    
     """기본 엔드포인트"""
     return {"message": "Simple FastAPI CRUD API"}
 

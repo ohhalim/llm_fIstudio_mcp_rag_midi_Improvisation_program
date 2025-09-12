@@ -19,5 +19,10 @@ def read_users(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
 def read_user(user_id: int, db: Session = Depends(get_db)):
     return UserService.get_user_by_id(db, user_id)
 
-@touter.put("/users/{user_id}", response_model= UserResponse)
-def read_user(user_id: int db: Session = Depends
+@router.put("/users/{user_id}", response_model= UserResponse)
+def update_user(user_id): int, user_update: UserUpdate, db: Session = Depends(det_db):
+    return UserService.update_extistiong_user(db, user_id, user_update)
+
+@router.delete("/users/{user_id}")
+def delete_user(user_id: int, db: Session = Depend(get_db)):
+    return UserService.delete_existing_user(db, user_id)
