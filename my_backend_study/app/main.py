@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from .simple_database import create_tables
-from .simple_controller import router
-from .simple_config import settings
+from .database import create_tables
+from .controller import router
+from .config import settings
 
 # FastAPI 앱 생성
 app = FastAPI(
@@ -19,7 +19,7 @@ def on_startup():
 
 @app.get("/")
 def root(): 
-    
+
     """기본 엔드포인트"""
     return {"message": "Simple FastAPI CRUD API"}
 

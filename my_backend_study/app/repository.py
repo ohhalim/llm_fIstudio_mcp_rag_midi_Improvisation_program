@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from .simple_model import User
-from .simple_schemas import UserCreate, UserUpdate
+from .model import User
+from .schemas import UserCreate, UserUpdate
 
 def get_user(db: Session, user_id: int):
     """ID로 사용자 조회"""
