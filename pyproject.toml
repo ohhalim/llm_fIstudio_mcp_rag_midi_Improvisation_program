@@ -1,11 +1,11 @@
 [project]
-name = "midi-test"
+name = "flstudio-solo-generator"
 version = "0.1.0"
-description = "Add your description here"
+description = "AI Solo generator for FL Studio"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "fastmcp>=2.12.3",
+    "SuperClaude>=3.0.0",
     "httpx>=0.28.1",
     "mido>=1.3.3",
     "python-rtmidi>=1.5.8",
