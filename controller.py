@@ -12,9 +12,9 @@ mcp = FastMCP("flstudio_solo_generator")
 
 # MIDI 포트 설정
 # controller.py -> FL Studio (솔로 멜로디 전송용)
-OUTPUT_PORT_NAME = 'loopMIDI Port 2'
+OUTPUT_PORT_NAME = 'IAC ÎìúÎùºÏù¥Î≤Ñ loopMIDI Port 2'
 # FL Studio -> controller.py (코드 입력용)
-INPUT_PORT_NAME = 'loopMIDI Port 3'
+INPUT_PORT_NAME = 'IAC ÎìúÎùºÏù¥Î≤Ñ loopMIDI Port 3'
 
 # --- MIDI I/O Initialization ---
 try:
