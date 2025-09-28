@@ -1,5 +1,6 @@
 # device_test.py
-# name=Test Controller
+# 상위 디렉토리 name=Test Controller 
+# '/Users/ohhalim/Documents/Image-Line/FL Studio/Settings/Hardware/Test Controller'
 
 import transport
 import ui
