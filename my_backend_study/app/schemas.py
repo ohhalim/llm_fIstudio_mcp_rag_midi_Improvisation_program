@@ -1,11 +1,12 @@
 from pydantic import BaseModel
+from typing import Optional
 from datetime import datetime
 
 # User 생성 요청 / 요청 데이터 검증
 class UserCreate(BaseModel):
     name: str
     email: str
-    age: int = None
+    age: Optional[int] = None
 
 # User 응답 / 응답 데이터 형식
 class UserResponse(BaseModel):
@@ -20,6 +21,6 @@ class UserResponse(BaseModel):
 
 # User 업데이트 요청
 class UserUpdate(BaseModel):
-    name: str = None
-    email: str = None
-    age: int = None
+    name: Optional[str] = None
+    email: Optional[str] = None
+    age: Optional[int] = None

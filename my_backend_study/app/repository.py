@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from .simple_model import User
-from .simple_schemas import UserCreate, UserUpdate
+from .models import User
+from .schemas import UserCreate, UserUpdate
 
 def get_user(db: Session, user_id: int):
     """ID로 사용자 조회"""
@@ -16,7 +16,7 @@ def get_user_by_email(db: Session, email: str):
 
 def create_user(db: Session, user: UserCreate):
     """사용자 생성"""
-    db_user = User(**user.dict()) # pydantic -> sqlalchemy 변환
+    db_user = User(**user.model_dump()) # pydantic v2 -> sqlalchemy 변환
     db.add(db_user) # 메모리에 추가
     db.commit() # db에 저장
     db.refresh(db_user) # 새로 생성된 필드 가져오기

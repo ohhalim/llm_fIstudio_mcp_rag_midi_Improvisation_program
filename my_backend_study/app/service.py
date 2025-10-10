@@ -1,10 +1,10 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
-from .simple_repository import (
+from .repository import (
     get_user, get_users, get_user_by_email, 
     create_user, update_user, delete_user
 )
-from .simple_schemas import UserCreate, UserUpdate, UserResponse
+from .schemas import UserCreate, UserUpdate, UserResponse
 
 class UserService:
     
