@@ -256,3 +256,16 @@ CREATE DATABASE mydb;
 \q
 
   
+------
+그럼 도커로 할때는 직접 psql해서 데이터베이스를 안만들어도 되겠네
+
+네, 맞습니다! Docker Compose로 PostgreSQL 컨테이너를 띄우고 애플리케이션 컨테이너를 연결할 때는 수동으로 psql에 접속해서 데이터베이스를 만들 필요가 없습니다.
+docker-compose.yml 파일에서 db 서비스에 다음과 같이 환경 변수를 설정했습니다:
+여기서 POSTGRES_DB: mydb 설정은 PostgreSQL 컨테이너가 처음 시작될 때 자동으로 mydb라는 이름의 데이터베이스를 생성하도록 지시합니다. 또한 POSTGRES_USER와 POSTGRES_PASSWORD도 함께 설정되므로, 이 사용자/비밀번호로 해당 데이터베이스에 접근할 수 있게 됩니다.
+그리고 우리 FastAPI 애플리케이션의 main.py 파일에서는 @app.on_event("startup") 데코레이터 아래에 create_tables() 함수를 호출하도록 설정했습니다. 이 create_tables() 함수는 models.py에 정의된 ORM 모델들을 기반으로 테이블을 생성합니다.
+따라서 전체 흐름은 다음과 같습니다:
+docker compose up --build 명령 실행.
+PostgreSQL 컨테이너가 시작될 때 POSTGRES_DB 환경 변수에 따라 mydb 데이터베이스가 자동으로 생성됩니다.
+FastAPI 애플리케이션 컨테이너가 시작되고, app.on_event("startup")에 의해 create_tables() 함수가 호출됩니다.
+create_tables() 함수는 mydb 데이터베이스에 접속하여 users와 같은 정의된 테이블들을 자동으로 생성합니다.
+결론적으로, Docker Compose를 사용하면 데이터베이스를 직접 생성하거나 테이블을 수동으로 만드는 등의 번거로운 초기 설정 작업을 자동화할 수 있습니다. 이는 개발 생산성을 크게 향상시키고, 개발 및 배포 환경의 일관성을 유지하는 데 큰 도움이 됩니다.
