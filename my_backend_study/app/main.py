@@ -1,22 +1,17 @@
 from fastapi import FastAPI
-from contextlib import asynccontextmanager
 from .database import create_tables
 from .controller import router
 from .config import settings
 
 # FastAPI 앱 생성
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # 앱 시작 시 테이블 생성
-    create_tables()
-    yield
-    # 앱 종료 시 처리 필요 시 여기에 작성
-
 app = FastAPI(
     title=settings.APP_NAME,
     debug=settings.DEBUG,
-    lifespan=lifespan
 )
+
+@app.on_event("startup")
+def on_startup():
+    create_tables()
 
 # 라우터 등록
 app.include_router(router, prefix="/api/v1")

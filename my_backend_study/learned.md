@@ -230,3 +230,29 @@ sql을 자동생성
   6. 응답 역순으로 전달
      database.py → repository.py → service.py
   → controller.py → 클라이언트
+
+
+------
+가상 환경 생성 및 활성화:
+    uv venv
+    source .venv/bin/activate
+의존성 설치:
+    uv pip install -r requirements.txt
+
+------
+PostgreSQL 기본 사용자 비밀번호 설정 및 데이터베이스 생성
+우리가 config.py에서 postgresql://postgres:password@localhost:5432/mydb로 설정했으므로, 기본 사용자 postgres의 비밀번호를 password로 설정하고 mydb 데이터베이스를 생성해야 합니다.
+# PostgreSQL 기본 사용자(postgres)로 접속
+psql -U postgres
+
+# psql 프롬프트에서 비밀번호 설정 (password를 원하는 비밀번호로 변경하세요)
+# 여기서 설정한 비밀번호는 config.py의 'password'와 일치해야 합니다.
+ALTER USER postgres WITH PASSWORD 'password';
+
+# psql 프롬프트에서 데이터베이스 생성 (mydb는 config.py에 설정된 데이터베이스 이름)
+CREATE DATABASE mydb;
+
+# psql 종료
+\q
+
+  

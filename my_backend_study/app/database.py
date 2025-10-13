@@ -5,8 +5,7 @@ from .config import settings
 
 # 데이터베이스 엔진 생성
 engine = create_engine(
-    settings.DATABASE_URL,
-    connect_args={"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {}
+    settings.DATABASE_URL
 )
 
 # 세션 팩토리
@@ -18,10 +17,7 @@ Base = declarative_base()
 # DB 세션 의존성 주입 함수
 def get_db():
     db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    return db
 
 # 테이블 생성 함수
 def create_tables():
